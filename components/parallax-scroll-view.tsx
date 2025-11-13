@@ -2,9 +2,9 @@ import type { PropsWithChildren, ReactElement } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
   interpolate,
-  useAnimatedRef,
+  useAnimatedScrollHandler,
   useAnimatedStyle,
-  useScrollOffset,
+  useSharedValue,
 } from 'react-native-reanimated';
 
 import { ThemedView } from '@/components/themed-view';
@@ -25,30 +25,35 @@ export default function ParallaxScrollView({
 }: Props) {
   const backgroundColor = useThemeColor({}, 'background');
   const colorScheme = useColorScheme() ?? 'light';
-  const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const scrollOffset = useScrollOffset(scrollRef);
+
+  // shared value that tracks scroll Y
+  const scrollY = useSharedValue(0);
+
+  // handler to update scrollY
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
+
+  // animated style for header (parallax effect)
   const headerAnimatedStyle = useAnimatedStyle(() => {
+    const translateY = interpolate(
+      scrollY.value,
+      [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
+      [-HEADER_HEIGHT / 2, 0, HEADER_HEIGHT * 0.75]
+    );
+
+    const scaleVal = interpolate(scrollY.value, [-HEADER_HEIGHT, 0, HEADER_HEIGHT], [2, 1, 1]);
+
     return {
-      transform: [
-        {
-          translateY: interpolate(
-            scrollOffset.value,
-            [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
-            [-HEADER_HEIGHT / 2, 0, HEADER_HEIGHT * 0.75]
-          ),
-        },
-        {
-          scale: interpolate(scrollOffset.value, [-HEADER_HEIGHT, 0, HEADER_HEIGHT], [2, 1, 1]),
-        },
-      ],
-    };
+      transform: [{ translateY }, { scale: scaleVal }],
+    } as any;
   });
 
   return (
     <Animated.ScrollView
-      ref={scrollRef}
-      style={{ backgroundColor, flex: 1 }}
-      scrollEventThrottle={16}>
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
+      style={{ backgroundColor, flex: 1 }}>
       <Animated.View
         style={[
           styles.header,
@@ -57,6 +62,7 @@ export default function ParallaxScrollView({
         ]}>
         {headerImage}
       </Animated.View>
+
       <ThemedView style={styles.content}>{children}</ThemedView>
     </Animated.ScrollView>
   );
