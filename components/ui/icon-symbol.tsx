@@ -18,9 +18,15 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
   // Custom additions used in the app
   'bag': 'work',
   'person': 'person',
+  'xmark': 'close',
+  'chevron.down': 'expand-more',
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
+  'arrow.left': 'arrow-back',
 } as IconMapping;
 
 /**

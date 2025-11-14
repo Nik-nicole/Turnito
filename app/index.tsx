@@ -1,4 +1,4 @@
-import WelcomeScreen from '@/app/welcome';
+import WelcomeScreen from '@/app/pages/welcome';
 
 export default function Index() {
   return <WelcomeScreen />;

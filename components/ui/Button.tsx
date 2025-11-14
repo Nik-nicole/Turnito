@@ -13,6 +13,7 @@ type Props = PropsWithChildren<{
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
+  minWidth?: number;
   variant?: Variants;
   size?: Sizes;
   color?: string;
@@ -24,6 +25,7 @@ type Props = PropsWithChildren<{
   paddingVertical?: number;
   paddingHorizontal?: number;
   style?: any;
+  textSize?: number;
   textStyle?: any;
   icon?: string;
   iconColor?: string;
@@ -55,7 +57,9 @@ const Button = memo(function Button({
   paddingHorizontal,
   style,
   textStyle,
+  textSize,
   icon,
+  minWidth,
   iconColor,
   iconSize = 20,
   iconPosition = 'left',
@@ -104,11 +108,12 @@ const Button = memo(function Button({
         paddingHorizontal: paddingHorizontal ?? sz.ph,
         opacity: disabled ? 0.6 : 1,
         width: fullWidth ? '100%' : undefined,
+        minWidth: minWidth ?? undefined,
       },
       text: {
         color: paletteForVariant.text,
         fontWeight: 'bold',
-        fontSize: sz.fs,
+        fontSize: textSize ?? sz.fs,
       },
       gap: sz.gap,
     };
@@ -125,6 +130,8 @@ const Button = memo(function Button({
     size,
     textColor,
     variant,
+    textSize,
+    minWidth,
   ]);
 
   const leftName = iconLeftName ?? (iconPosition === 'left' ? icon : undefined);

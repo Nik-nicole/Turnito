@@ -3,19 +3,21 @@ import { ThemedView } from '@/components/themed-view';
 import Button from '@/components/ui/Button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 
-import { Platform, Pressable, StyleSheet, Text, View, type DimensionValue, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type DimensionValue, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
-    <ThemedView style={styles.container} lightColor="#8C52FF" darkColor="#8C52FF">
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <ThemedView style={styles.container} lightColor="#8C52FF" darkColor="#8C52FF">
       <View style={styles.content}>
         <Image
-          source={require('../assets/images/Logo.png')}
+          source={require('../../assets/images/Logo.png')}
           style={styles.reactLogo}
         />
 
@@ -27,12 +29,13 @@ export default function WelcomeScreen() {
           <ThemedText style={styles.strong} lightColor="#FFFFFF" darkColor="#FFFFFF">AQUI !</ThemedText>
           <Button 
                 title="Registrarse como Empresa" 
-                onPress={() => router.push('/register-company')}
+                onPress={() => router.push('/pages/register-company')}
                 backgroundColor="white"
                 textColor="#5A35B8"
-                borderRadius= {13}
+                borderRadius= {12}
                 paddingVertical= {12}
-                paddingHorizontal={29}
+                paddingHorizontal={18}
+                minWidth= {Platform.select({ web: 320, default: 240 }) as number}
                 textStyle={{ fontSize: 14 }}
             />
         </View>
@@ -47,21 +50,38 @@ export default function WelcomeScreen() {
             Toma tu turno y no hagas más fila. Regístrate
           </ThemedText>
           <ThemedText style={styles.strong} lightColor="#FFFFFF" darkColor="#FFFFFF">AQUI !</ThemedText>
-          <Pressable style={styles.button} onPress={() => router.push('/(tabs)')}>
-            <Text style={styles.buttonText}>Registrarse como Usuario</Text>
-          </Pressable>
+          <Button 
+                title="Registrarse como Usuario" 
+                onPress={() => router.push('/pages/register-company')}
+                backgroundColor="white"
+                textColor="#5A35B8"
+                borderRadius= {12}
+                paddingVertical= {12}
+                paddingHorizontal={18}
+                minWidth= {Platform.select({ web: 320, default: 240 }) as number}
+                textStyle={{ fontSize: 14 }}
+            />
         </View>
 
         <View style={styles.sectionBottom}>
           <ThemedText style={styles.paragraph} lightColor="#FFFFFF" darkColor="#FFFFFF">
             Si ya tienes cuenta Inicia Sesión
           </ThemedText>
-          <Pressable style={styles.button} onPress={() => router.push('/(tabs)')}>
-            <Text style={styles.buttonText}>Inicia Sesión</Text>
-          </Pressable>
+          <Button 
+                title="inicia Sesion" 
+                onPress={() => router.push('/pages/register-company')}
+                backgroundColor="white"
+                textColor="#5A35B8"
+                borderRadius= {12}
+                paddingVertical= {12}
+                paddingHorizontal= {18}
+                minWidth= {Platform.select({ web: 320, default: 240 }) as number}
+                textStyle={{ fontSize: 14 }}
+            />
         </View>
       </View>
     </ThemedView>
+    </>
   );
 }
 
@@ -75,8 +95,6 @@ const styles = StyleSheet.create<{
   strong: TextStyle;
   separatorRow: ViewStyle;
   separator: TextStyle;
-  button: ViewStyle;
-  buttonText: TextStyle;
   reactLogo: ImageStyle;
 }>({
   container: {
@@ -130,19 +148,8 @@ const styles = StyleSheet.create<{
   separator: {
     fontWeight: 'bold',
   },
-  button: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    minWidth: Platform.select({ web: 320, default: 240 }) as number,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  buttonText: {
-    color: '#5A35B8',
-    fontWeight: 'bold',
-  },
+ 
+ 
 
   reactLogo: {
     alignSelf: 'center',
