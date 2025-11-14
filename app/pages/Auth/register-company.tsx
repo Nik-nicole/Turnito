@@ -6,7 +6,7 @@ import InputText from '@/components/ui/inputText';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function RegisterCompany() {
   const router = useRouter();
@@ -26,8 +26,15 @@ export default function RegisterCompany() {
       <Stack.Screen options={{ headerShown: false }} />
       <ThemedView style={styles.container} lightColor="#8C52FF" darkColor="#8C52FF">
       <SafeAreaView style={{ flex: 1 }}>
-        
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.select({ ios: 40, android: 0, web: 0 }) as number}
+        >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Volver"
@@ -121,6 +128,7 @@ export default function RegisterCompany() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                clearable={false}
                 placeholder="••••••••"
                 placeholderTextColor="#9C7DFF"
                 variant="outline"
@@ -155,6 +163,7 @@ export default function RegisterCompany() {
             <View style={styles.badgeBottom} />
           </View>
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </ThemedView>
     </>
@@ -170,6 +179,7 @@ const styles = StyleSheet.create({
     width: Platform.select({ web: '100%', default: '92%' }) as any,
     maxWidth: Platform.select({ web: 960, default: 1200 }) as any,
     alignSelf: 'center',
+    paddingBottom: 32,
   },
   header: {
     marginTop: Platform.select({ web: 10, default: 10 }) as number,
@@ -211,6 +221,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     width: Platform.select({ web: '100%', default: '100%' }) as any,
     alignSelf: 'center',
+    marginBottom: 24,
   },
   backButton: {
     position: 'absolute',

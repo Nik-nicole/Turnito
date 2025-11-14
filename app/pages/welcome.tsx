@@ -29,7 +29,7 @@ export default function WelcomeScreen() {
           <ThemedText style={styles.strong} lightColor="#FFFFFF" darkColor="#FFFFFF">AQUI !</ThemedText>
           <Button 
                 title="Registrarse como Empresa" 
-                onPress={() => router.push('/pages/register-company')}
+                onPress={() => router.push('/pages/Auth/register-company')}
                 backgroundColor="white"
                 textColor="#5A35B8"
                 borderRadius= {12}
@@ -52,7 +52,7 @@ export default function WelcomeScreen() {
           <ThemedText style={styles.strong} lightColor="#FFFFFF" darkColor="#FFFFFF">AQUI !</ThemedText>
           <Button 
                 title="Registrarse como Usuario" 
-                onPress={() => router.push('/pages/register-company')}
+                onPress={() => router.push('/pages/Auth/userLogin')}
                 backgroundColor="white"
                 textColor="#5A35B8"
                 borderRadius= {12}

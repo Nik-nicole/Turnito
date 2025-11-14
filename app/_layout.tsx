@@ -8,7 +8,7 @@ import { View } from 'react-native';
 import 'react-native-reanimated';
 
 import SplashAnimation from '@/components/animations/splashAnimation';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from '@/hooks/theme/use-color-scheme';
 
 export const unstable_settings = {
   anchor: '(tabs)',
