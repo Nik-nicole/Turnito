@@ -2,24 +2,23 @@
   "expo": {
     "name": "turnito",
     "slug": "turnito",
+    "owner": "niki-nicole",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/Logo.png",
     "scheme": "turnito",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#8C52FF",
-        "foregroundImage": "./assets/images/Logo.png",
-        "backgroundImage": "./assets/images/Logo.png",
-        "monochromeImage": "./assets/images/Logo.png"
+        "foregroundImage": "./assets/images/Logo.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.nikinicole.turnito"
     },
     "web": {
       "output": "static",
@@ -33,16 +32,18 @@
           "image": "./assets/images/Logo.png",
           "imageWidth": 200,
           "imageHeight": 200,
-          "backgroundColor": "#8C52FF",        
+          "backgroundColor": "#8C52FF",
           "dark": {
             "backgroundColor": "#8C52FF"
           }
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a8eeb3ee-a2c0-4964-aedb-228c0db463a8"
+      }
     }
   }
 }
