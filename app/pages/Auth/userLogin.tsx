@@ -4,10 +4,16 @@ import { ThemedView } from '@/components/themed-view';
 import Button from '@/components/ui/Button';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import InputText from '@/components/ui/inputText';
-import useAuthGoogle from '@/hooks/Auth/authGoogle';
+
+// ⛔️ YA NO usamos useAuthGoogle directamente aquí
+// import useAuthGoogle from '@/hooks/Auth/authGoogle';
+
+// ✅ Usamos el hook que hiciste para auth + redirección
+import useGoogleAuthWithRedirect from '@/hooks/Auth/redirectAuthGoogle';
+  
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -31,22 +37,22 @@ export default function RegisterCompany() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Desde tu hook
-  const { promptAsync, user, loading: authLoading, error } = useAuthGoogle();
+  // 🔥 Usamos tu nuevo hook: él se encarga de login + redirección
+  const {
+    loginWithGoogle,
+    user,
+    loading: authLoading,
+    error,
+  } = useGoogleAuthWithRedirect('/pages/Instructions');
 
-  // Cuando user exista, navegamos a Instructions
-  useEffect(() => {
-    if (user) {
-      router.push('/pages/Instructions');
-    }
-  }, [user, router]);
+  // Solo para debug, si quieres ver el usuario en consola:
+  console.log('[REGISTER_COMPANY] user desde hook de redirect:', user);
 
   const handleSubmit = () => {
-    console.log({ category, companyName, email });
+    console.log('Enviando formulario:', { category, companyName, email });
+    router.navigate('/pages/Instructions');
   };
 
-  // Ruta local del icono que subiste → la uso como URI de imagen.
-  // (El archivo está en /mnt/data según tu historial; lo referencio con file://)
   const GOOGLE_ICON_FILE_URI = 'file:///mnt/data/4c8731a1-8ae5-4701-b1b4-813e6fbb5516.png';
 
   // Botón personalizado de Google
@@ -56,11 +62,10 @@ export default function RegisterCompany() {
     const onPress = async () => {
       try {
         setBusy(true);
-        // No pasamos useProxy: el hook decide el redirectUri correcto según entorno
-        const res = await promptAsync();
-        console.log('promptAsync result', res);
-        // El hook procesa la respuesta (fetch userinfo). Cuando user quede en estado,
-        // el useEffect arriba redirigirá automáticamente.
+        // 👇 Aquí solo llamamos a la función del hook
+        await loginWithGoogle();
+        // Si el login es success, el hook ya hizo:
+        // router.replace('/pages/Instructions');
       } catch (e) {
         console.error('Error al iniciar Sesion', e);
       } finally {
@@ -78,7 +83,6 @@ export default function RegisterCompany() {
       >
         <View style={styles.googleContent}>
           <Image
-            // usando el archivo local que subiste; en tu entorno local Expo Go debe poder accederlo
             source={{ uri: GOOGLE_ICON_FILE_URI }}
             style={styles.googleIcon}
             resizeMode="contain"
@@ -87,15 +91,15 @@ export default function RegisterCompany() {
           <Text style={styles.googleText}>Registrarme con Google</Text>
         </View>
 
-        {busy || authLoading ? <ActivityIndicator color="#FFFFFF" style={{ marginLeft: 10 }} /> : null}
+        {busy || authLoading ? (
+          <ActivityIndicator color="#FFFFFF" style={{ marginLeft: 10 }} />
+        ) : null}
       </TouchableOpacity>
     );
   };
 
   return (
     <>
-      {/* Si quieres usar <Stack.Screen name="Instructions" ... /> en algún lugar del árbol,
-          eso lo defines en el archivo de rutas; aquí usamos router.push('/Instructions') */}
       <Stack.Screen options={{ headerShown: false }} />
       <ThemedView style={styles.container} lightColor="#8C52FF" darkColor="#8C52FF">
         <SafeAreaView style={{ flex: 1 }}>
@@ -200,9 +204,19 @@ export default function RegisterCompany() {
                     {error ? <Text style={styles.errorText}>{error}</Text> : null}
                   </View>
 
-                  <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'center', paddingVertical: 19 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      gap: 12,
+                      justifyContent: 'center',
+                      paddingVertical: 19,
+                    }}
+                  >
                     {Array.from({ length: 14 }).map((_, i) => (
-                      <View key={i} style={{ width: 8, height: 2, backgroundColor: '#6F36FF', opacity: 0.8 }} />
+                      <View
+                        key={i}
+                        style={{ width: 8, height: 2, backgroundColor: '#6F36FF', opacity: 0.8 }}
+                      />
                     ))}
                   </View>
 
@@ -331,9 +345,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 
-  /* Google button styles */
   googleButton: {
-    backgroundColor: '#8C52FF', // moradito
+    backgroundColor: '#8C52FF',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 14,
@@ -356,11 +369,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-
   errorText: {
     color: '#ff6b6b',
     marginTop: 8,
     textAlign: 'center',
   },
 });
-

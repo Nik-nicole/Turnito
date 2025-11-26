@@ -1,5 +1,4 @@
-// hooks/Auth/authGoogle.ts
-import * as AuthSession from 'expo-auth-session';
+// src/hooks/Auth/authGoogle.ts
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
@@ -8,8 +7,12 @@ import { Platform } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const ANDROID_CLIENT_ID = '18569793904-p0mshh7c0dnjdhkkbjjedghanher41d5.apps.googleusercontent.com'; // (Android OAuth client)
-const WEB_CLIENT_ID = '18569793904-3rr67du5enddqfbpcsodnpidlporfl3h.apps.googleusercontent.com'; // (Web OAuth client)
+const EXPO_CLIENT_ID =
+  '18569793904-8eqqdlcuucf4hdt4uqrtl729541ued40.apps.googleusercontent.com'; // para Expo Go (dev)
+const ANDROID_CLIENT_ID =
+  '18569793904-p0mshh7c0dnjdhkkbjjedghanher41d5.apps.googleusercontent.com';
+const WEB_CLIENT_ID =
+  '18569793904-3rr67du5enddqfbpcsodnpidlporfl3h.apps.googleusercontent.com';
 
 type UseAuthGoogleReturn = {
   request: any | null;
@@ -26,43 +29,36 @@ export default function useAuthGoogle(): UseAuthGoogleReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Detectar si estamos ejecutando en Expo Go (proxy) o en standalone/dev-client
-  const appOwnership = Constants.appOwnership; // 'expo' cuando es Expo Go
+  const appOwnership = Constants.appOwnership; // 'expo', 'standalone' o null
+
+  // 👉 Config según entorno:
+  // - Expo Go (dev)  -> usamos expoClientId (proxy de Expo)
+  // - APK Android    -> usamos solo androidClientId (flujo nativo)
+  // - Web            -> usamos webClientId
   const isExpoGo = appOwnership === 'expo';
+  const isAndroidStandalone = Platform.OS === 'android' && !isExpoGo;
 
-  // REDIRECT URI: forzar el proxy de Expo cuando estemos en Expo Go
-  const proxyRedirectUri = 'https://auth.expo.io/@niki-nicole/turnito';
-  // fallback: makeRedirectUri si no quieres forzar o para otros entornos
-  const autoRedirectUri = AuthSession.makeRedirectUri({ useProxy: true });
-
-  // Decide redirectUri final
-  const redirectUri = isExpoGo ? proxyRedirectUri : autoRedirectUri;
-  console.log('[DEBUG] appOwnership =', appOwnership);
-  console.log('[DEBUG] isExpoGo =', isExpoGo);
-  console.log('[DEBUG] redirectUri final =', redirectUri);
-
-  /**
-   * IMPORTANTE: si estamos en Expo Go, forzamos clientId = WEB_CLIENT_ID (no androidClientId)
-   * Si estamos en standalone (apk / dev-client), pasamos androidClientId para que la librería
-   * pueda usarlo en Android.
-   */
-  const clientConfig: any = {
-    clientId: WEB_CLIENT_ID, // por defecto usar web client
-    redirectUri,
+  let config: any = {
     scopes: ['openid', 'profile', 'email'],
   };
 
-  if (!isExpoGo && Platform.OS === 'android') {
-    // sólo en builds instaladas (no Expo Go) añade androidClientId
-    clientConfig.androidClientId = ANDROID_CLIENT_ID;
+  if (Platform.OS === 'web') {
+    config.webClientId = WEB_CLIENT_ID;
+  } else if (isExpoGo) {
+    config.expoClientId = EXPO_CLIENT_ID;
+  } else if (isAndroidStandalone) {
+    config.androidClientId = ANDROID_CLIENT_ID;
   }
 
-  // request/response/promptAsync del provider de Google
-  const [request, response, promptAsync] = Google.useAuthRequest(clientConfig as any);
+  console.log('[AUTH] appOwnership:', appOwnership, 'Platform:', Platform.OS, 'config:', config);
 
-  // DEBUG: imprimir request cuando esté listo
+  const [request, response, promptAsyncNative] = Google.useAuthRequest(config as any);
+
+  // 👇 NUEVO: log para ver el redirectUri real que está usando la request
   useEffect(() => {
-    console.log('[DEBUG] Google.useAuthRequest -> request:', request);
+    if (request) {
+      console.log('[AUTH] redirectUri usado por request:', request.redirectUri);
+    }
   }, [request]);
 
   const fetchUserInfo = useCallback(async (accessToken: string) => {
@@ -94,90 +90,73 @@ export default function useAuthGoogle(): UseAuthGoogleReturn {
 
   useEffect(() => {
     (async () => {
+      if (!response) return;
+
+      // 👇 NUEVO: ver el objeto de respuesta completo
+      console.log('[AUTH] response completo de Google:', response);
+
+      console.log('[AUTH] Respuesta de Google recibida, tipo:', response.type);
+
       try {
-        if (!response) return;
-
-        console.log('[DEBUG] response completa de Google:', JSON.stringify(response, null, 2));
-
         if (response.type === 'success') {
           setError(null);
 
-          const maybeAccessToken =
-            (response as any).authentication?.accessToken ??
-            (response as any).params?.access_token;
+          const accessToken =
+            response.authentication?.accessToken ?? response.params?.access_token;
 
-          if (maybeAccessToken) {
-            await fetchUserInfo(maybeAccessToken);
+          if (accessToken) {
+            await fetchUserInfo(accessToken);
             return;
           }
 
-          const code = (response as any).params?.code;
-          if (code) {
-            const message = 'Auth success but received authorization code. Exchange it for tokens on your server.';
-            console.warn('[authGoogle] ', message, 'code:', code);
-            setError(message);
-            setUser(null);
-            return;
-          }
-
-          setError('Autenticación completada pero no se obtuvo access token ni code.');
+          setError('Éxito pero no se obtuvo token.');
           setUser(null);
-          return;
-        }
-
-        if (response.type === 'error') {
+        } else if (response.type === 'error') {
           const respErr =
-            (response as any).error ??
-            (response as any).params?.error_description ??
-            JSON.stringify(response);
-
+            (response as any).error ?? response.params?.error_description ?? JSON.stringify(response);
           setError(String(respErr));
-          console.error('[authGoogle] auth error response:', response);
-          return;
-        }
-
-        if (response.type === 'dismiss' || response.type === 'cancel') {
-          console.info('[authGoogle] user dismissed/cancelled auth:', response.type);
+          console.error('[authGoogle] ERROR:', response);
+        } else if (response.type === 'dismiss' || response.type === 'cancel') {
+          console.log('[authGoogle] Usuario canceló/cerró login:', response.type);
+          setError('Inicio de sesión cancelado o no completado.');
         }
       } catch (err: any) {
-        console.error('[authGoogle] unexpected error handling response:', err);
+        console.error('[authGoogle] unexpected error:', err);
         setError(err?.message ?? 'Error inesperado en el flujo de autenticación.');
       }
     })();
   }, [response, fetchUserInfo]);
+
+  const promptAsync = useCallback(async () => {
+    try {
+      setError(null);
+      if (!request) {
+        const errorMsg = 'Auth request not ready yet';
+        console.error('[AUTH ERROR]', errorMsg);
+        setError(errorMsg);
+        return null;
+      }
+
+      console.log('[AUTH] Iniciando autenticación...');
+      const result = await promptAsyncNative();
+      console.log('[AUTH] Resultado de autenticación:', result?.type);
+      return result;
+    } catch (err: any) {
+      console.error('[AUTH ERROR] Error en promptAsync:', err);
+      setError(err?.message ?? 'Error al iniciar la autenticación.');
+      throw err;
+    }
+  }, [request, promptAsyncNative]);
 
   const signOut = useCallback(() => {
     setUser(null);
     setError(null);
   }, []);
 
-  const startAuth = useCallback(async () => {
-    try {
-      setError(null);
-
-      if (!request) {
-        const msg = 'Auth request not ready yet.';
-        console.warn('[authGoogle] startAuth: request not ready');
-        setError(msg);
-        return;
-      }
-
-      console.log('[DEBUG] Ejecutando promptAsync()...');
-      // no pasamos useProxy aquí para evitar problemas de tipos; ya determinamos redirectUri arriba
-      const res = await promptAsync();
-      console.log('[DEBUG] promptAsync() returned:', res);
-      return res;
-    } catch (err: any) {
-      console.error('[authGoogle] promptAsync error:', err);
-      setError(err?.message ?? 'Error al iniciar la autenticación.');
-      throw err;
-    }
-  }, [promptAsync, request]);
-
   return {
-    request: request ?? null,
-    response: response ?? null,
-    promptAsync: startAuth,
+    request,
+    response,
+    promptAsync,
     user,
     loading,
     error,

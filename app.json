@@ -5,8 +5,8 @@
     "owner": "niki-nicole",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Logo.png",
-    "scheme": "turnito",
+    "icon": "./assets/images/logoicon.png",
+    "scheme": "com.nikinicole.turnito", 
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#8C52FF",
-        "foregroundImage": "./assets/images/Logo.png"
+        "foregroundImage": "./assets/images/logoicon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -22,14 +22,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/Logo.png"
+      "favicon": "./assets/images/logoicon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/Logo.png",
+          "image": "./assets/images/logoicon.png",
           "imageWidth": 200,
           "imageHeight": 200,
           "backgroundColor": "#8C52FF",

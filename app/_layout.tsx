@@ -30,7 +30,7 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-          <Stack.Screen name="Instructions" options={{ headerShown: false }} />
+          <Stack.Screen name="pages/Instructions" options={{ headerShown: false }} />
         </Stack>
 
         <SplashAnimation
