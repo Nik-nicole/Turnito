@@ -5,14 +5,15 @@ import Entypo from '@expo/vector-icons/Entypo';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { Platform, StyleSheet, View } from 'react-native';
 
 export default function Instructions() {
 
     const handleSubmit = () => {
-    console.log({ });
-  };
+      // Navegar a la pantalla de unirse a sala
+      router.push('/pages/(tabs)/join-room');
+    };
     return (
         <>
             <Stack.Screen options={{ headerShown: false }} />

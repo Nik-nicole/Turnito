@@ -10,7 +10,7 @@ WebBrowser.maybeCompleteAuthSession();
 const EXPO_CLIENT_ID =
   '18569793904-8eqqdlcuucf4hdt4uqrtl729541ued40.apps.googleusercontent.com'; // para Expo Go (dev)
 const ANDROID_CLIENT_ID =
-  '18569793904-p0mshh7c0dnjdhkkbjjedghanher41d5.apps.googleusercontent.com';
+  '18569793904-cmodceen6vhubtm7a2rl1n46mn0sdlv4.apps.googleusercontent.com';
 const WEB_CLIENT_ID =
   '18569793904-3rr67du5enddqfbpcsodnpidlporfl3h.apps.googleusercontent.com';
 
@@ -31,30 +31,35 @@ export default function useAuthGoogle(): UseAuthGoogleReturn {
 
   const appOwnership = Constants.appOwnership; // 'expo', 'standalone' o null
 
-  // 👉 Config según entorno:
-  // - Expo Go (dev)  -> usamos expoClientId (proxy de Expo)
-  // - APK Android    -> usamos solo androidClientId (flujo nativo)
-  // - Web            -> usamos webClientId
-  const isExpoGo = appOwnership === 'expo';
-  const isAndroidStandalone = Platform.OS === 'android' && !isExpoGo;
-
+  // ⚠️ AQUÍ ES DONDE CAMBIA TODO
+  // Antes tenías if/else if que hacían que en Expo Go NUNCA se pusiera androidClientId.
+  // Ahora:
+  // - Siempre que sea Android => androidClientId
+  // - Si es Expo Go => también expoClientId
+  // - Si es Web => webClientId
   let config: any = {
     scopes: ['openid', 'profile', 'email'],
   };
 
+  // Android (incluido Expo Go en Android) => NECESITA androidClientId
+  if (Platform.OS === 'android') {
+    config.androidClientId = ANDROID_CLIENT_ID;
+  }
+
+  // Web
   if (Platform.OS === 'web') {
     config.webClientId = WEB_CLIENT_ID;
-  } else if (isExpoGo) {
+  }
+
+  // Expo Go (sea iOS o Android)
+  if (appOwnership === 'expo') {
     config.expoClientId = EXPO_CLIENT_ID;
-  } else if (isAndroidStandalone) {
-    config.androidClientId = ANDROID_CLIENT_ID;
   }
 
   console.log('[AUTH] appOwnership:', appOwnership, 'Platform:', Platform.OS, 'config:', config);
 
   const [request, response, promptAsyncNative] = Google.useAuthRequest(config as any);
 
-  // 👇 NUEVO: log para ver el redirectUri real que está usando la request
   useEffect(() => {
     if (request) {
       console.log('[AUTH] redirectUri usado por request:', request.redirectUri);
@@ -92,9 +97,7 @@ export default function useAuthGoogle(): UseAuthGoogleReturn {
     (async () => {
       if (!response) return;
 
-      // 👇 NUEVO: ver el objeto de respuesta completo
       console.log('[AUTH] response completo de Google:', response);
-
       console.log('[AUTH] Respuesta de Google recibida, tipo:', response.type);
 
       try {
