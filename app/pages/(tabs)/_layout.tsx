@@ -38,6 +38,7 @@ export default function TabLayout() {
         name="join-room"
         options={{
           title: 'Unirse a Sala',
+          headerShown: false,
           tabBarIcon: ({ color }) => (
             <View style={styles.iconContainer}>
               <Ionicons name="ticket" size={24} color={color} />

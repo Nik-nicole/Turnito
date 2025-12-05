@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logoicon.png",
-    "scheme": "com.nikinicole.turnito", 
+    "scheme": "com.nikinicole.turnito",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
@@ -37,7 +37,8 @@
             "backgroundColor": "#8C52FF"
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "extra": {
       "router": {},

@@ -1,7 +1,14 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { PropsWithChildren } from 'react';
 import React, { memo, useMemo } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 type Variants = 'solid' | 'outline' | 'ghost';
 type Sizes = 'sm' | 'md' | 'lg';
@@ -34,6 +41,12 @@ type Props = PropsWithChildren<{
   iconLeftName?: string;
   iconRightName?: string;
   testID?: string;
+
+  // >>> NUEVO: gradiente
+  useGradient?: boolean;
+  gradientColors?: readonly [string, string, ...string[]];
+  gradientStart?: { x: number; y: number };
+  gradientEnd?: { x: number; y: number };
 }>;
 
 const PRIMARY = '#5A35B8';
@@ -66,6 +79,11 @@ const Button = memo(function Button({
   iconLeftName,
   iconRightName,
   testID,
+  children,
+  useGradient = false,
+  gradientColors,
+  gradientStart,
+  gradientEnd,
 }: Props) {
   const resolved = useMemo(() => {
     const sizes = {
@@ -99,16 +117,21 @@ const Button = memo(function Button({
     const paletteForVariant = palette[variant];
 
     return {
+      // estilos del contenedor "presionable"
       container: {
-        backgroundColor: paletteForVariant.bg,
+        backgroundColor: useGradient ? 'transparent' : paletteForVariant.bg,
         borderColor: paletteForVariant.borderColor,
         borderWidth: paletteForVariant.borderWidth,
         borderRadius,
-        paddingVertical: paddingVertical ?? sz.pv,
-        paddingHorizontal: paddingHorizontal ?? sz.ph,
         opacity: disabled ? 0.6 : 1,
         width: fullWidth ? '100%' : undefined,
         minWidth: minWidth ?? undefined,
+        overflow: 'hidden', // importante para que el gradiente respete las esquinas
+      },
+      // padding va dentro del contenido
+      inner: {
+        paddingVertical: paddingVertical ?? sz.pv,
+        paddingHorizontal: paddingHorizontal ?? sz.ph,
       },
       text: {
         color: paletteForVariant.text,
@@ -125,19 +148,21 @@ const Button = memo(function Button({
     color,
     disabled,
     fullWidth,
+    minWidth,
     paddingHorizontal,
     paddingVertical,
     size,
     textColor,
     variant,
     textSize,
-    minWidth,
+    useGradient,
   ]);
 
   const leftName = iconLeftName ?? (iconPosition === 'left' ? icon : undefined);
   const rightName = iconRightName ?? (iconPosition === 'right' ? icon : undefined);
   const icColor = iconColor ?? resolved.text.color;
-  const content = (
+
+  const defaultContent = (
     <View style={[styles.row, { gap: resolved.gap }]}>
       {leftName ? <IconSymbol name={leftName as any} size={iconSize} color={icColor} /> : null}
       <Text style={[resolved.text, textStyle]} numberOfLines={1}>
@@ -146,6 +171,10 @@ const Button = memo(function Button({
       {rightName ? <IconSymbol name={rightName as any} size={iconSize} color={icColor} /> : null}
     </View>
   );
+
+  // Si pasas children, los usamos; si no, usamos el contenido por defecto
+  const content = children ? children : defaultContent;
+
   return (
     <Pressable
       android_ripple={{ color: '#00000022' }}
@@ -155,7 +184,20 @@ const Button = memo(function Button({
       style={[styles.button, resolved.container, style]}
       testID={testID}
     >
-      {loading ? <ActivityIndicator color={resolved.text.color} /> : content}
+      {loading ? (
+        <ActivityIndicator color={resolved.text.color} />
+      ) : useGradient ? (
+        <LinearGradient
+          colors={gradientColors ?? ['#A855F7', '#8B5CF6']}
+          start={gradientStart ?? { x: 0, y: 0.5 }}
+          end={gradientEnd ?? { x: 1, y: 0.5 }}
+           style={[styles.gradient, resolved.inner]}
+        >
+          {content}
+        </LinearGradient>
+      ) : (
+        <View style={[styles.inner, resolved.inner]}>{content}</View>
+      )}
     </Pressable>
   );
 });
@@ -166,6 +208,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
+  },
+  inner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+   gradient: {
+    flex: 1,
+    width: '100%',           // 👈 hace que el degradado ocupe todo el ancho
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
